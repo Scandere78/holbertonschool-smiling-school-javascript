@@ -37,7 +37,8 @@
 
 .btn:hover,
 .btn:active {
-  opacity: var(--opacity-value);
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
 }
 
 /* Header / Hero Styles */
@@ -371,7 +372,7 @@
   }
 }
 
-@media screen and (max-width: 767px) {
+@media screen and (max-width: 768px) {
   :root {
     --popular-arrows-x: -6vw;
   }
@@ -380,7 +381,7 @@
   }
 }
 
-@media screen and (max-width: 575px) {
+@media screen and (max-width: 576px) {
   :root {
     --popular-arrows-x: -15px;
   }
@@ -427,7 +428,7 @@
   padding-bottom: 52px;
 }
 
-@media screen and (max-width: 991px) {
+@media screen and (max-width: 768px) {
   :root {
     --smile-p-margin: 5vw;
     --smile-padding: 60px;
@@ -500,7 +501,7 @@
   padding-bottom: 39px;
 }
 
-@media screen and (max-width: 991px) {
+@media screen and (max-width: 768px) {
   .footer {
     padding-left: 40px;
     padding-right: 40px;
@@ -561,7 +562,7 @@
   width: 200px;
 }
 
-@media screen and (max-width: 575px) {
+@media screen and (max-width: 576px) {
   .pricing-header h1 {
     font-size: 24px;
   }
@@ -629,7 +630,7 @@
   }
 }
 
-@media screen and (max-width: 575px) {
+@media screen and (max-width: 576px) {
   .prices-grid .row {
     margin-bottom: 51px;
   }
@@ -701,7 +702,7 @@
   }
 }
 
-@media screen and (max-width: 575px) {
+@media screen and (max-width: 576px) {
   .faq .section-body .col1,
   .faq .section-body .col2 {
     padding: 0 4vw;
@@ -849,7 +850,7 @@
   background-color: white;
 }
 
-@media screen and (max-width: 575px) {
+@media screen and (max-width: 576px) {
   .search .box1 .input-group {
     margin-bottom: 0;
   }
@@ -891,7 +892,7 @@
   }
 }
 
-@media screen and (max-width: 575px) {
+@media screen and (max-width: 576px) {
   .results .card-img-overlay {
     top: 5vh;
   }
