@@ -34,14 +34,27 @@
       src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
       integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
       crossorigin="anonymous"
-    ></script>
-
-    <link
+    ></script>    <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
       integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
       crossorigin="anonymous"
     />
+    <style>
+      .loader {
+        border: 10px solid #f3f3f3;
+        border-top: 10px solid #C271FF;
+        border-radius: 50%;
+        width: 80px;
+        height: 80px;
+        animation: spin 2s linear infinite;
+        margin: 50px auto;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body class="body">
     <header class="header courses-header">
@@ -113,9 +126,7 @@
             <div class="col-12 col-sm-12 col-lg-4 box1">
               <span class="text-white font-weight-bold drop-down-title"
                 >KEYWORDS</span
-              >
-
-              <div class="input-group mb-sm-4">
+              >              <div class="input-group mb-sm-4">
                 <div class="input-group-prepend">
                   <span
                     class="input-group-text holberton_school-icon-search_1"
@@ -123,14 +134,14 @@
                 </div>
                 <input
                   type="text"
+                  id="search-keywords"
                   class="form-control search-text-area"
                   aria-label="Default"
                   aria-describedby="inputGroup-sizing-default"
                   placeholder="Search by keywords"
                 />
               </div>
-            </div>
-            <div class="col-12 col-sm-6 col-lg-4 box2">
+            </div>            <div class="col-12 col-sm-6 col-lg-4 box2">
               <span class="text-white font-weight-bold drop-down-title"
                 >TOPIC</span
               >
@@ -139,21 +150,19 @@
                   class="btn dropdown-toggle text-left"
                   href="#"
                   role="button"
-                  id="dropdownMenuLink"
+                  id="topicDropdown"
                   data-toggle="dropdown"
                   aria-haspopup="true"
                   aria-expanded="false"
                 >
-                  <span>Novice</span>
+                  <span id="selected-topic">All</span>
                 </a>
-
                 <div
                   class="dropdown-menu mt-0"
-                  aria-labelledby="dropdownMenuLink"
+                  aria-labelledby="topicDropdown"
+                  id="topic-dropdown-menu"
                 >
-                  <a class="dropdown-item" href="#">Novice</a>
-                  <a class="dropdown-item" href="#">Intermediate</a>
-                  <a class="dropdown-item" href="#">Expert</a>
+                  <!-- Options will be populated dynamically -->
                 </div>
               </div>
             </div>
@@ -166,21 +175,19 @@
                   class="btn dropdown-toggle text-left"
                   href="#"
                   role="button"
-                  id="dropdownMenuLink"
+                  id="sortDropdown"
                   data-toggle="dropdown"
                   aria-haspopup="true"
                   aria-expanded="false"
                 >
-                  <span>Most Popular</span>
+                  <span id="selected-sort">Most popular</span>
                 </a>
-
                 <div
                   class="dropdown-menu mt-0"
-                  aria-labelledby="dropdownMenuLink"
+                  aria-labelledby="sortDropdown"
+                  id="sort-dropdown-menu"
                 >
-                  <a class="dropdown-item" href="#">Most Popular</a>
-                  <a class="dropdown-item" href="#">Most Recent</a>
-                  <a class="dropdown-item" href="#">Most Viewed</a>
+                  <!-- Options will be populated dynamically -->
                 </div>
               </div>
             </div>
@@ -190,9 +197,15 @@
       <section class="section results">
         <div class="container">
           <div class="section-title">
-            <span class="text-muted video-count">11 videos</span>
+            <span class="text-muted video-count" id="video-count">Loading...</span>
           </div>
-          <div class="row">
+          <!-- Loader visible pendant le chargement -->
+          <div class="loader" id="courses-loader"></div>
+          
+          <!-- Conteneur pour les cours, caché initialement -->
+          <div class="row" id="courses-container" style="display: none;">
+            <!-- Les cours seront chargés dynamiquement ici -->
+          </div>
             <div class="col-12 col-sm-4 col-lg-3 d-flex justify-content-center">
               <div class="card">
                 <img
@@ -962,7 +975,201 @@
             </div>
           </div>
         </div>
-      </div>
-    </footer>
+      </div>    </footer>
+
+    <script>
+      // Variables globales pour les filtres
+      let currentFilters = {
+        q: '',
+        topic: '',
+        sort: 'most_popular'
+      };
+      
+      let topics = [];
+      let sorts = [];
+
+      // Fonction pour créer une carte de cours
+      function createCourseCard(course) {
+        const stars = Array(5).fill(0).map((_, i) => {
+          const starSrc = i < course.star ? 'images/star_on.png' : 'images/star_off.png';
+          return `<img src="${starSrc}" alt="star" width="15px" />`;
+        }).join('');
+
+        return `
+          <div class="col-12 col-sm-4 col-lg-3 d-flex justify-content-center">
+            <div class="card">
+              <img
+                src="${course.thumb_url}"
+                class="card-img-top"
+                alt="Video thumbnail"
+              />
+              <div class="card-img-overlay text-center">
+                <img
+                  src="images/play.png"
+                  alt="Play"
+                  width="64px"
+                  class="align-self-center play-overlay"
+                />
+              </div>
+              <div class="card-body">
+                <h5 class="card-title font-weight-bold">${course.title}</h5>
+                <p class="card-text text-muted">${course.sub_title}</p>
+                <div class="creator d-flex align-items-center">
+                  <img
+                    src="${course.author_pic_url}"
+                    alt="Creator of Video"
+                    width="30px"
+                    class="rounded-circle"
+                  />
+                  <h6 class="pl-3 m-0 main-color">${course.author}</h6>
+                </div>
+                <div class="info pt-3 d-flex justify-content-between">
+                  <div class="rating">
+                    ${stars}
+                  </div>
+                  <span class="main-color">${course.duration}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Fonction pour charger les cours avec les filtres
+      function loadCourses() {
+        const $loader = $('#courses-loader');
+        const $container = $('#courses-container');
+        const $videoCount = $('#video-count');
+        
+        $loader.show();
+        $container.hide();
+        $videoCount.text('Loading...');
+
+        const params = new URLSearchParams();
+        if (currentFilters.q) params.append('q', currentFilters.q);
+        if (currentFilters.topic) params.append('topic', currentFilters.topic);
+        if (currentFilters.sort) params.append('sort', currentFilters.sort);
+
+        const url = `https://smileschool-api.hbtn.info/courses?${params.toString()}`;
+        
+        const startTime = Date.now();
+
+        $.get(url)
+          .done(function(data) {
+            // Initialiser la recherche avec la valeur de l'API
+            if (data.q && !currentFilters.q) {
+              $('#search-keywords').val(data.q);
+              currentFilters.q = data.q;
+            }
+            
+            // Peupler les dropdowns si pas encore fait
+            if (topics.length === 0 && data.topics) {
+              topics = data.topics;
+              populateDropdown('#topic-dropdown-menu', topics, 'topic');
+            }
+            
+            if (sorts.length === 0 && data.sorts) {
+              sorts = data.sorts;
+              populateDropdown('#sort-dropdown-menu', sorts, 'sort');
+            }
+
+            // Afficher le nombre de vidéos
+            const courseCount = data.courses ? data.courses.length : 0;
+            $videoCount.text(`${courseCount} video${courseCount !== 1 ? 's' : ''}`);
+
+            // Créer les cartes de cours
+            $container.empty();
+            if (data.courses && data.courses.length > 0) {
+              data.courses.forEach(course => {
+                $container.append(createCourseCard(course));
+              });
+            } else {
+              $container.append('<div class="col-12 text-center"><p class="text-muted">No courses found.</p></div>');
+            }
+          })
+          .fail(function() {
+            $videoCount.text('Error loading courses');
+            $container.empty();
+            $container.append('<div class="col-12 text-center"><p class="text-muted">Failed to load courses.</p></div>');
+          })
+          .always(function() {
+            const elapsed = Date.now() - startTime;
+            const minDelay = 1000;
+            const remaining = minDelay - elapsed;
+
+            if (remaining > 0) {
+              setTimeout(() => {
+                $loader.hide();
+                $container.show();
+              }, remaining);
+            } else {
+              $loader.hide();
+              $container.show();
+            }
+          });
+      }
+
+      // Fonction pour peupler un dropdown
+      function populateDropdown(selector, items, filterType) {
+        const $dropdown = $(selector);
+        $dropdown.empty();
+        
+        // Ajouter l'option "All" pour topic
+        if (filterType === 'topic') {
+          $dropdown.append(`<a class="dropdown-item" href="#" data-value="">All</a>`);
+        }
+        
+        items.forEach(item => {
+          $dropdown.append(`<a class="dropdown-item" href="#" data-value="${item}">${item}</a>`);
+        });
+        
+        // Gérer les clics sur les options
+        $dropdown.find('a').click(function(e) {
+          e.preventDefault();
+          const value = $(this).data('value');
+          const text = $(this).text();
+          
+          if (filterType === 'topic') {
+            currentFilters.topic = value;
+            $('#selected-topic').text(text);
+          } else if (filterType === 'sort') {
+            currentFilters.sort = value;
+            $('#selected-sort').text(text);
+          }
+          
+          loadCourses();
+        });
+      }
+
+      // Débounce pour la recherche
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Initialisation
+      $(document).ready(function() {
+        // Charger les cours initiaux
+        loadCourses();
+        
+        // Gérer la recherche avec débounce
+        const debouncedSearch = debounce(function() {
+          const searchValue = $('#search-keywords').val().trim();
+          if (currentFilters.q !== searchValue) {
+            currentFilters.q = searchValue;
+            loadCourses();
+          }
+        }, 500);
+        
+        $('#search-keywords').on('input', debouncedSearch);
+      });
+    </script>
   </body>
 </html>
